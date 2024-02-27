@@ -17,4 +17,8 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-Route::get('/youtube', 'App\Http\Controllers\YoutubeapiController@index');
+// Route::get('/youtube', 'App\Http\Controllers\YoutubeapiController@index');
+
+Route::get('/youtube/auth', 'App\Http\Controllers\YoutubeapiController@redirectToProvider');
+Route::get('/youtube', 'App\Http\Controllers\YoutubeapiController@getVideos');
+

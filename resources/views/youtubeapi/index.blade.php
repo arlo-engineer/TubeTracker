@@ -8,9 +8,9 @@
 </head>
 <body>
     index.blade.php
-    
-    {{-- @foreach ($response['items'] as $result)
+
+    @foreach ($response['items'] as $result)
     <p>{{ $result['snippet']['title'] }}</p>
-    @endforeach --}}
+    @endforeach
 </body>
 </html>

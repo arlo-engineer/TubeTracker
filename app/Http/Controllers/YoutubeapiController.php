@@ -13,7 +13,7 @@ class YoutubeapiController extends Controller
     private $client_secret;
     private $redirect_uri;
 
-    public function index()
+    public function redirectToProvider()
     {
         // クライアントIDと秘密鍵を設定
         $this->client_id = config('youtubeapi.client_id');
@@ -29,20 +29,40 @@ class YoutubeapiController extends Controller
         $client->setRedirectUri($this->redirect_uri);
         $client->setScopes(['https://www.googleapis.com/auth/youtube.readonly']);
 
-        // アクセストークンが設定されていない場合、認証URLを生成
-        if (! isset($_GET['code'])) {
-            $auth_url = $client->createAuthUrl();
-            header('Location: ' . filter_var($auth_url, FILTER_SANITIZE_URL));
-            } else {
-            // アクセストークンを取得
-            $client->authenticate($_GET['code']);
-            $access_token = $client->getAccessToken();
+        // dd($client->getAccessToken());
+        return redirect($client->createAuthUrl());
+    }
 
-            // YouTube Data APIにリクエストを送信
-            $youtube = new Google_Service_YouTube($client);
-            $response = $youtube->subscriptions->listSubscriptions('snippet,contentDetails,subscriberSnippet', array("mine" => "true"));
+    public function getVideos()
+    {
+        // $_SESSIONの開始
+        session_start();
+        // クライアントIDと秘密鍵を設定
+        $this->client_id = config('youtubeapi.client_id');
+        $this->client_secret = config('youtubeapi.client_secret');
 
-            return view('youtubeapi.index', compact($response));
+        // リダイレクトURIを指定
+        $this->redirect_uri = config('youtubeapi.redirect_uri');
+
+        // OAuth2.0クライアントを作成
+        $client = new Google_Client();
+        $client->setClientId($this->client_id);
+        $client->setClientSecret($this->client_secret);
+        $client->setRedirectUri($this->redirect_uri);
+        $client->setScopes(['https://www.googleapis.com/auth/youtube.readonly']);
+
+        if (isset($_SESSION['access_token'])) {
+            $client->setAccessToken($_SESSION['access_token']);
         }
+
+        $client->fetchAccessTokenWithAuthCode($_GET['code']);
+        $access_token = $client->getAccessToken();
+        if (isset($access_token)) {
+            $_SESSION['access_token'] = $access_token;
+        }
+
+        $youtube = new Google_Service_YouTube($client);
+        $response = $youtube->subscriptions->listSubscriptions('snippet,contentDetails,subscriberSnippet', array("mine" => "true"));
+        return view('youtubeapi.index', compact('response'));
     }
 }
