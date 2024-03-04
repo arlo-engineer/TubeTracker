@@ -50,7 +50,6 @@ class YoutubeapiController extends Controller
         $client->setClientSecret($this->client_secret);
         $client->setRedirectUri($this->redirect_uri);
         $client->setScopes(['https://www.googleapis.com/auth/youtube.readonly']);
-        // $client->setDeveloperKey('AIzaSyDQocZYw1gRVQzXN8HGAbNquWrTKv7YIYU');
 
         if (isset($_SESSION['access_token'])) {
             $client->setAccessToken($_SESSION['access_token']);
