@@ -50,6 +50,7 @@ class YoutubeapiController extends Controller
         $client->setClientSecret($this->client_secret);
         $client->setRedirectUri($this->redirect_uri);
         $client->setScopes(['https://www.googleapis.com/auth/youtube.readonly']);
+        // $client->setDeveloperKey('AIzaSyDQocZYw1gRVQzXN8HGAbNquWrTKv7YIYU');
 
         if (isset($_SESSION['access_token'])) {
             $client->setAccessToken($_SESSION['access_token']);
@@ -62,7 +63,35 @@ class YoutubeapiController extends Controller
         }
 
         $youtube = new Google_Service_YouTube($client);
-        $response = $youtube->subscriptions->listSubscriptions('snippet,contentDetails,subscriberSnippet', array("mine" => "true"));
-        return view('youtubeapi.index', compact('response'));
+
+        // 登録チャンネル情報の取得
+        $subscriptions = $youtube->subscriptions->listSubscriptions('snippet,contentDetails,subscriberSnippet', [
+            "mine" => "true",
+            'maxResults' => 10,
+        ]);
+
+        // 連想配列は扱いづらいためcollection化して処理
+        $channelIds = collect($subscriptions->getItems())->pluck('snippet.resourceId')->all();
+
+        $videoIds = array();
+
+        // channelIdからvideoIdの取得
+        foreach ($channelIds as $channelId) {
+            $items = $youtube->search->listSearch('snippet', [
+                'channelId' => $channelId->channelId, // channelId: UCutJqz56653xV2wwSvut_hQ
+                'order' => 'viewCount',
+                'maxResults' => 10,
+            ]);
+
+            // 連想配列は扱いづらいためcollection化して処理
+            $ids = collect($items->getItems())->pluck('id')->all();
+
+            // videoIdを配列として取得
+            foreach ($ids as $id) {
+                $videoIds[] = $id->videoId;
+            }
+        }
+
+        return view('youtubeapi.index', compact('subscriptions', 'videoIds'));
     }
 }

@@ -7,10 +7,14 @@
     <title>TubeTracker</title>
 </head>
 <body>
-    index.blade.php
-
-    @foreach ($response['items'] as $result)
+    {{-- 登録チャンネル名の出力 --}}
+    @foreach ($subscriptions['items'] as $result)
     <p>{{ $result['snippet']['title'] }}</p>
+    @endforeach
+
+    {{-- 動画の出力 --}}
+    @foreach ($videoIds as $videoId)
+    <iframe src="https://www.youtube.com/embed/{{ $videoId }}" frameborder="0"></iframe>
     @endforeach
 </body>
 </html>
